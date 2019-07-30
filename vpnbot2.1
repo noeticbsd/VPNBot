@@ -1,0 +1,51 @@
+#!/bin/bash
+vpndir="/home/$USER/.vpnbook"
+if [ -d $vpndir ]; 
+then
+	echo "Usage: ./vpn_book -[VPN Location] [tcp/udp] [Port]"
+# WGET method
+	wget -q http://www.vpnbook.com/freevpn
+	cat $PWD/freevpn | grep Username | cut -b 29-35 | sed '2d'
+	cat $PWD/freevpn | grep Password | cut -b 29-36 | sed '2d'
+	rm freevpn
+	case $1 in
+# options
+		-euro1)
+			cd /home/$USER/vpn/euro1/
+			sudo openvpn --script-security 2 --config vpnbook$1-$2$3.ovpn
+		;;
+		-euro2)
+			cd /home/$USER/vpn/euro2
+		        sudo openvpn --script-security 2 --config vpnbook$1-$2$3.ovpn
+		;;
+		-uk1)
+			cd /home/$USER/vpn/uk1/
+		        sudo openvpn --script-security 2 --config vpnbook$1-$2$3.ovpn
+		;;
+		-us1)
+			cd /home/$USER/vpn/us1/
+		        sudo openvpn --script-security 2 --config vpnbook$1-$2$3.ovpn
+		;;
+		*)
+			echo "Usage: ./vpn_connect -[VPN Location] [tcp/udp] [Port]"
+			echo "example: ./vpn_cook -uk1 udp 53"
+			echo "TCP Ports: 80, 443"
+			echo "UDP Ports: 53, 25000"
+		;;
+	esac
+else
+	echo "Required folder (/home/$USER/.vpnbook does not exist, creating it now"
+	mkdir /home/$USER/.vpnbook
+	wget -q https://raw.github.com/noeticbsd/VPNBot/master/source.list
+	cp source.list /home/$USER/.vpnbook/
+	rm -rf source.list
+	echo "updating openVPN configurationfiles"
+	while read file; 
+	do
+		wget -q $file -P /home/$USER/.vpnbook
+		cd /home/$USER/.vpnbook
+		for zip in `ls *.zip`; do unzip -q $zip; done
+		rm -rf *.zip
+		cd		
+	done</home/$USER/.vpnbook/source.list
+fi
