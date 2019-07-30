@@ -1,0 +1,64 @@
+#!/bin/bash
+# VPN Assistant Tool{VPNAT) v0.01
+# WGET Updated VPN Username/Password
+wget -q http://www.vpnbook.com/freevpn
+cat $PWD/freevpn | grep Username | cut -b 41-47 | sed '2d'
+cat $PWD/freevpn | grep Password | cut -b 29-36 | sed '2d'
+rm freevpn
+# Core
+case $1 in
+-setup)
+	echo "Coming Soon"
+ 	if [ $USER = "root" ]; then
+		reset
+		echo "You are currently logged into root and about to installed OpenVPN if needed. This script will also create the directory /home/$USER/.vpnat. it will run a wget to download the vpnbook VPn locations and download them and unpack them. Enter username to setup VPNAT up for and hit Enter to continue"
+		read user_cnf
+		mkdir /home/$user_cnf/.vpnat
+		chown $user_cnf:$user_cnf /home/$user_cnf/.vpnat
+		chmod 755 /home/$user_cnf/.vpnat
+#		wget -q http://location/of/.sources.file
+	else
+		echo "Requires Root Access, please log on as root before running this option"
+	fi
+;;
+-connect)
+	cd /home/$USER/.vpnat/
+	sudo openvpn --script-security 2 --config $2-$3-$4$5.ovpn
+;;
+-new)
+	echo "Coming Soon"
+;;
+-update)
+	rm -rf /home/$USER/.vpnat/*.ovpn
+	rm -rf /home/$USER/.vpnat/.sources
+	wget -q http://Location/Of/.sources
+	mv .sources /home/$USER/.vpnat/.sources
+	for a in $(cut -f 1 /home/$USER/.vpnat/.sources);
+        	do
+                	echo "Downlading Config Files From $a"
+	                wget -q $a
+	                echo "$a" | cut -b 45-80>/home/$USER/.vpnat/temp_update
+	                echo "Extracting Config Files"
+	                for b in $(cut -f 1 /home/$USER/.vpnat/temp_update);
+	                        do
+	                                echo $b
+	                                unzip $b
+	                                cp *.ovpn /home/$USER/.vpnat/
+	                                rm $b
+					rm -rf *.ovpn
+        	                done
+	        done
+	echo "Update Complete, Please Hit Enter"
+	read pause_update
+	reset
+;;
+*)
+	echo "Usage: ./vpnat -connect VPN-Network Geo-Location Connection Type[tcp/udp] Port"
+	echo "example: ./vpnat -connect vpnbook us1 udp 53"
+	echo "Networks: vpnbook"
+	echo "Locations: US1, US2, Euro1, Euro2, CA1"
+	echo "TCP Ports: 80, 443"
+	echo "UDP Ports: 53, 25000"
+;;
+esac
+

@@ -1,0 +1,48 @@
+#!/bin/bash
+# VPNBot v3.02 By Strife
+# WGET Updated VPN Username/Password
+wget -q http://www.vpnbook.com/freevpn
+cat $PWD/freevpn | grep Username | cut -b 41-47 | sed '2d'
+cat $PWD/freevpn | grep Password | cut -b 29-36 | sed '2d'
+rm freevpn
+# Core
+case $1 in
+-setup)
+#	mkdir /home/$USER/.ovpn_config
+#	wget [github URL]
+	
+;;
+-connect)
+	cd /home/$USER/.ovpn_config/
+	sudo openvpn --script-security 2 --config vpnbook-$2-$3$4.ovpn
+;;
+-update)
+	rm -rf /home/$USER/.ovpn_config/*.ovpn
+	for a in $(cut -f 1 /home/$USER/.ovpn_config/.sources);
+        	do
+                	echo "Downlading Config Files From $a"
+	                wget -q $a
+	                echo "$a" | cut -b 45-80>/home/$USER/.ovpn_config/temp22
+	                echo "Extracting Config Files"
+	                for b in $(cut -f 1 /home/$USER/.ovpn_config/temp22);
+	                        do
+	                                echo $b
+	                                unzip $b
+	                                cp *.ovpn /home/$USER/.ovpn_config/
+	                                rm $b
+					rm -rf *.ovpn
+        	                done
+	        done
+	echo "Update Complete, Please Hit Enter"
+	read pause
+	reset
+;;
+*)
+	echo "Usage: ./vpn_connect -[VPN Location] [tcp/udp] [Port]"
+	echo "example: ./vpn_cook -uk1 udp 53"
+	echo "Locations: US1, US2, Euro1, Euro2, CA1"
+	echo "TCP Ports: 80, 443"
+	echo "UDP Ports: 53, 25000"
+;;
+esac
+
